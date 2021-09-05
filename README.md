@@ -1,2 +1,9 @@
+# Time Stamp Microservice
 
-# [Timestamp Microservice](https://www.freecodecamp.org/learn/apis-and-microservices/apis-and-microservices-projects/timestamp-microservice)
+Clone of [Freecodecamp timestamp microservice](https://timestamp-microservice.freecodecamp.rocks/)
+
+## Steps to run server
+
+- git clone <repourl>
+- npm i
+- npm start
