@@ -8,7 +8,14 @@ var app = express();
 // enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
 // so that your API is remotely testable by FCC 
 var cors = require('cors');
-const { isUTCFormat, convertUTCToUnix, convertUnixToUTC } = require('./utils');
+const { 
+  isUNIXFormat, 
+  convertUTCToUnix, 
+  convertToUTC, 
+  isInvalidTime, 
+  getCurrentTime,
+  convertUnixToUTC 
+} = require('./utils');
 app.use(cors({optionsSuccessStatus: 200}));  // some legacy browsers choke on 204
 
 // http://expressjs.com/en/starter/static-files.html
@@ -20,24 +27,47 @@ app.get("/", function (req, res) {
 });
 
 
+app.get('/api', (req, res) => {
+  res.json(getCurrentTime());
+})
+
+
 // your first API endpoint... 
 app.get("/api/:time", function (req, res) {
-  const time = req.params.time;
-  const isUTC = isUTCFormat(time);
-  const jsonObj = {
-    unix: time,
-    utc: time
-  }
-  if(isUTC){
-    jsonObj.unix = convertUTCToUnix(time);
+  const time = decodeURI(req.params.time);
+  let isInvalid;
+  const isUnix = isUNIXFormat(time);
+  if(isUnix){
+    isInvalid = isInvalidTime(Number(time));
   }
   else{
-    jsonObj.utc = convertUnixToUTC(time);
+    isInvalid = isInvalidTime(time);
   }
-  res.json(jsonObj);
+  if(isInvalid){
+    res.json({ error: 'Invalid Date' });
+  }
+  else{
+    const jsonObj = {};
+    if(isUnix){
+      jsonObj.utc = convertUnixToUTC(time);
+      jsonObj.unix = Number(time);
+    }
+    else{
+      jsonObj.unix = convertUTCToUnix(time);
+      jsonObj.utc = convertToUTC(time);
+    }
+    res.json(jsonObj);
+  }
 });
 
+const invalidRequestMiddleware = (req, res, next) => {
+  if(req.path !== '/' || req.path !== '/api'){
+    res.json({ error: 'Invalid path' })
+  }
+  next();
+}
 
+app.use(invalidRequestMiddleware)
 
 // listen for requests :)
 app.listen(8080, function () {
